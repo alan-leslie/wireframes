@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - aircraft wireframes</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - Wireframe demo. Models by 
+		<span><a id="author" href="http://people.sc.fsu.edu/~jburkardt/data/obj/obj.html" target="_blank">John Burkardt</a></span>
+<!--<a id="author" href="http://people.sc.fsu.edu/~jburkardt/data/obj/obj.html" target="_blank">John Burkardt</a>.-->
+		
+		Select wireframe:
+		<select id="wireframeList" onchange="onChangeWireframe()">
+		  <option value="a10">A10 Thunderbolt</option>  
+		  <option value="fw190">FW190</option>  
+		  <option value="halifax">Halifax</option>  
+		  <option value="heinkel">Heinkel He111</option>
+		  <option value="p38">P38</option>  
+		  <option value="p39">P39</option>  
+		  <option value="spitfire" selected="selected">Spitfire</option>
+		  <option value="vulcan">Vulcan</option>  
+		</select>
+		</div>
+		
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.2.js"></script>
+
+		<script src="./build/three.js"></script>
+		<!--<script src="js/loaders/OBJLoader.js"></script>-->
+		<script src="js/loaders/BinaryLoader.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="js/controls/TrackballControls.js"></script>
+
+		<script>
+
+			var OBJECTS = {
+
+				"a10": 	{
+					name:	"A10 Thunderbolt",
+					url: 	"obj/A10/A10.js",
+					author: '<a href="http://tf3dm.com/3d-model/us-a-10-thunderbolt-58817.html" target="_blank">jasonowen</a>',
+					author_name: "jasonowen",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -10, 0 ],
+					scale: 12.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"constellation": 	{
+					name:	"Constellation",
+					url: 	"obj/Constellation/Constellation.js",
+					author: '<a href="http://tf3dm.com/3d-model/airplane-constela-8885.html" target="_blank">3Dregenrator</a>',
+					author_name: "3Dregenrator",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -10, 0 ],
+					scale: 1.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"fw190": 	{
+					name:	"Focke-Wulf 190",
+					url: 	"obj/FW190/FW190.js",
+					author: '<a href="http://tf3dm.com/3d-model/german-ww-2-fw-190-airplane-51834.html" target="_blank">jasonowen</a>',
+					author_name: "jasonowen",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -20.0, 0 ],
+					scale: 20.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"halifax": 	{
+					name:	"Halifax",
+					url: 	"obj/HALIFAX/HALIFAX.js",
+					author: '<a href="http://tf3dm.com/3d-model/airplane-halifax-38993.html" target="_blank">3Dregenrator</a>',
+					author_name: "3Dregenrator",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -30, 0.0 ],
+					scale: 0.01,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"heinkel": 	{
+					name:	"Heinkel He111",
+					url: 	"obj/HEINKEL/HEINKEL.js",
+					author: '<a href="http://tf3dm.com/3d-model/german-ww-2-heinkel-111-bomber-7805.html" target="_blank">jasonowen</a>',
+					author_name: "jasonowen",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -30, 20.0 ],
+					scale: 12.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"p38": 	{
+					name:	"P38 Lightning",
+					url: 	"obj/P38/P38.js",
+					author: '<a href="http://tf3dm.com/3d-model/p38j-34143.html" target="_blank">kim</a>',
+					author_name: "kim",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -50, 120.0 ],
+					scale: 0.6,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"p39": 	{
+					name:	"P39 Aircobra",
+					url: 	"obj/P39/p39.js",
+					author: '<a href="http://tf3dm.com/3d-model/russian-ww-2-p-39-airacobra-33185.html" target="_blank">jasonowen</a>',
+					author_name: "jasonowen",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -30, 0 ],
+					scale: 20.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"spitfire": 	{
+					name:	"Spitfire",
+					url: 	"obj/Spitfire/spitfire.js",
+					author: '<a href="http://tf3dm.com/3d-model/uk-ww-2-spitfire-mk-1-64128.html">jasonowen</a>',
+					author_name: "jasonowen",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -10, -20 ],
+					scale: 20.0,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				},
+				"vulcan": 	{
+					name:	"Vulcan",
+					url: 	"obj/VULCAN/VULCAN.js",
+					author: '<a href="http://tf3dm.com/3d-model/airplane-vulcan-16504.html" target="_blank">3Dregenrator</a>',
+					author_name: "3Dregenrator",
+					init_rotation: [ 0, 0, 0 ],
+					init_position: [ 0, -20, 0 ],
+					scale: 0.009,
+					//~ init_material: 4,
+					//~ body_materials: [ 2 ],
+
+					object: null//,
+					//~ materials: null
+				}
+			}
+
+			var container, stats;
+
+			var camera, scene, renderer;
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+			
+			var loader = new THREE.BinaryLoader(true);
+
+
+			init();
+			animate();
+
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
+				camera.position.x = 175 ;
+				camera.position.y = -1.5 ;
+				camera.position.z = 86 ;
+				//~ var lookAt =  new THREE.Vector3( 100, 100, 100 ) ;
+				//~ camera.lookAt( lookAt );
+
+                                //~ controls = new THREE.OrbitControls( camera );
+				controls = new THREE.TrackballControls( camera );
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+				controls.noZoom = false;
+				controls.noPan = false;
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+				// scene
+
+				scene = new THREE.Scene();
+
+				var ambient = new THREE.AmbientLight( 0x101030 );
+				scene.add( ambient );
+
+				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+				directionalLight.position.set( 0, 0, 1 ).normalize();
+				scene.add( directionalLight );
+
+				// texture
+
+				var texture = new THREE.Texture();
+
+				//~ var loader = new THREE.ImageLoader();
+				//~ var loader = new THREE.BinaryLoader( true );
+
+				//~ loader.addEventListener( 'load', function ( event ) {
+
+					//~ texture.image = event.content;
+					//~ texture.needsUpdate = true;
+
+				//~ } );
+				//~ loader.load( 'textures/ash_uvgrid01.jpg' );
+
+				// model
+				//~ var loader = new THREE.OBJLoader();
+				document.body.appendChild( loader.statusDomElement );
+				
+				onChangeWireframe();
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onChangeWireframe() {
+				var listBox = document.getElementById("wireframeList");	
+			        var strWireframe = listBox.options[listBox.selectedIndex].value;
+				var newPath = "obj/" + strWireframe + "/" + strWireframe + ".js";
+				
+				hideAll();
+				displayObject(strWireframe);
+			}
+			
+			//~ function createScene( object ) { -- objloader loads a mesh not a geometry
+			function createScene( geometry, objectName ) {
+				loader.statusDomElement.innerHTML = "Creating model ...";
+
+				var m = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe : true  } );
+				var object = new THREE.Mesh( geometry, m );
+
+				object.traverse( function ( child ) {
+
+					if ( child instanceof THREE.Mesh ) {
+
+						child.material = m;
+
+					}
+
+				} );
+					
+				object.rotation.x = OBJECTS[objectName].init_rotation[0];
+				object.rotation.y = OBJECTS[objectName].init_rotation[1];
+				object.rotation.z = OBJECTS[objectName].init_rotation[2];
+				
+				object.position.x = OBJECTS[objectName].init_position[ 0 ];
+				object.position.y = OBJECTS[objectName].init_position[ 1 ];
+				object.position.z = OBJECTS[objectName].init_position[ 2 ];
+
+				object.scale.x = object.scale.y = object.scale.z = OBJECTS[objectName].scale;
+				//~ console.log(OBJECTS[objectName].scale);
+				
+				$("#author").prop("href",OBJECTS[objectName].author);
+				$("#author").text(OBJECTS[objectName].author_name);
+
+				scene.add( object );
+				OBJECTS[objectName].object = object;
+
+				loader.statusDomElement.style.display = "none";
+				loader.statusDomElement.innerHTML = "Loading model ...";
+			}
+			
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function displayObject(objectName) {
+				var theObject = OBJECTS[ objectName ].object;
+				var theObjectPath = OBJECTS[ objectName ].url;
+				
+				if(!theObject){
+					loader.load(theObjectPath, function( geometry ) { createScene( geometry, objectName ) } );
+				} else {
+					theObject.visible = true;
+				}
+			}
+
+			function hideAll() {
+				for ( var o in OBJECTS ) {
+					if (OBJECTS[ o ].object ) {
+						OBJECTS[ o ].object.visible = false;
+					}
+				}
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+				controls.update();
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
